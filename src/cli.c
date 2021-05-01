@@ -146,6 +146,7 @@ void process_code(int return_code){
 		eprintf("%d: unhandled\n", return_code);
 		break;
 	}
+    // FIXME: this is a bit clunky
     for(size_t i = 0; i < ARGSC; i++){
         if(ARGS[i].mallocd){
             free(ARGS[i].value);
