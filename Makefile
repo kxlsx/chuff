@@ -19,10 +19,9 @@ OUTPUT_DIR := output
 
 EXECUTABLE_NAME := huffc
 
-# FIXME: i don't believe it actually works on windows
 ifeq ($(OS),Windows_NT)
 EXECUTABLE_NAME := $(EXECUTABLE_NAME).exe
-PATH_SEP := $(subst /,\,/)
+PATH_SEP := $(subst /,\\,/)
 SRC_DIRS := $(SRC_DIR)
 RM := del /q /f
 RMDIR := rmdir /q /s
@@ -36,7 +35,7 @@ MKDIR := mkdir -p
 endif
 
 # files
-SRCS := $(wildcard $(patsubst %,%$(PATH_SEP)*.c, $(SRC_DIRS)))
+SRCS := $(subst /,$(PATH_SEP),$(wildcard $(patsubst %,%/*.c, $(SRC_DIRS))))
 INCLUDES := -I$(INCLUDE_DIR)
 OBJECTS := $(addprefix $(OBJECTS_DIR)$(PATH_SEP),$(subst $(PATH_SEP),_,$(patsubst $(SRC_DIR)$(PATH_SEP)%.c,%.o,$(SRCS))))
 EXECUTABLE := $(OUTPUT_DIR)$(PATH_SEP)$(EXECUTABLE_NAME)

@@ -120,7 +120,11 @@ void process_code(int return_code){
 		);
 		break;
 	case ERR_NO_ARGS_PROVIDED:
-        print_usage();
+        eprintf("USAGE:\n\t" PROGRAM_NAME " [FLAGS] ");
+        for(size_t i = 0; i < ARGSC; i++){
+            eprintf("[%s] ", ARGS[i].name);
+        }
+        eprintf("\nFor more information try --help\n");
 		break;
 	case ERR_TOO_MANY_ARGS:
 		eprintf("Too many arguments (max: %d)\n", ARGSC);
@@ -146,12 +150,8 @@ void process_code(int return_code){
 		eprintf("%d: unhandled\n", return_code);
 		break;
 	}
-    // FIXME: this is a bit clunky
-    for(size_t i = 0; i < ARGSC; i++){
-        if(ARGS[i].mallocd){
-            free(ARGS[i].value);
-        }
-    }
+
+    ARGS_FREE_MALLOCD();
 }
 
 int read_args(int argc, char **argv){
@@ -229,15 +229,7 @@ void print_version(void){
 }
 
 void print_usage(void){
-    puts("USAGE :");
-    printf("\t" PROGRAM_NAME " [FLAGS] ");
-    for(size_t i = 0; i < ARGSC; i++){
-        printf("[%s] ", ARGS[i].name);
-    }
-    puts(
-        "\n"
-        "For more information try --help"
-    );
+
 }
 
 bool_t fexists(char *fpath){

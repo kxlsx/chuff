@@ -58,5 +58,12 @@ static struct arg{
     {"DST_FILE", NULL, 0},
 };
 
+#define ARGS_FREE_MALLOCD()\
+    for(size_t i = 0; i < ARGSC; i++){ \
+        if(ARGS[i].mallocd){ \
+            free(ARGS[i].value); \
+        } \
+    }
+
 /* ============== */
 #endif
