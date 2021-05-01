@@ -151,7 +151,11 @@ void process_code(int return_code){
 		break;
 	}
 
-    ARGS_FREE_MALLOCD();
+    for(size_t i = 0; i < ARGSC; i++){
+        if(ARGS[i].mallocd){
+            free(ARGS[i].value);
+        }
+    }
 }
 
 int read_args(int argc, char **argv){

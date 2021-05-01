@@ -17,7 +17,7 @@
 #define PROGRAM_NAME \
     "huffc"
 #define VERSION \
-    "0.0.0"
+    "0.0.1"
 #define DESCRIPTION \
     "Compress or decompress SRC_FILE into DST_FILE (by default compress SRC_FILE into the current directory)"
 #define LICENSE \
@@ -57,13 +57,6 @@ static struct arg{
     {"SRC_FILE", NULL, 0},
     {"DST_FILE", NULL, 0},
 };
-
-#define ARGS_FREE_MALLOCD()\
-    for(size_t i = 0; i < ARGSC; i++){ \
-        if(ARGS[i].mallocd){ \
-            free(ARGS[i].value); \
-        } \
-    }
 
 /* ============== */
 #endif
