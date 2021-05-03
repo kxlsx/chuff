@@ -39,15 +39,15 @@ using the `--help` flag or in the [config.h][config] file.
 
 ## The hfc format
 
-As I mentioned it's as basic as it can be:
+As I mentioned, it's as basic as it can be:
 
 1. First byte stores the padding information
 for the header and data.
 2. Next is an encoded Huffman Tree used to decompress the file.
 3. The rest is just the compressed data itself.
 
-It's almost the same as the hff format in [**huff**][huff], but it stores
-even less garbage; as a result both programs are currently
+It's almost the same as the hff format in [**huff**][huff],
+but it stores less garbage; as a result both programs are currently
 incompatible *(and they're going to stay that way until I muster up
 the willpower to rewrite a most of huff)*.
 

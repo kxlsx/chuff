@@ -6,7 +6,7 @@
 
 # compiler and flags
 CC := gcc
-CFLAGS := -Wall -Wextra -Wshadow -Wundef
+CFLAGS := -march=native -Wall -Wextra -Wshadow -Wundef
 CFLAGS_DEBUG := -g3
 CFLAGS_RELEASE := -O3
 CFLAGS_RUNTIME := $(CFLAGS_DEBUG) $(CFLAGS)
