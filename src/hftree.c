@@ -80,7 +80,7 @@ struct hftree *hftree_from_stream(FILE *stream){
 	if(!BIT_CHECK(readch, 7)){
 		if((root = malloc(sizeof(struct hfnode))) == NULL)
 			return NULL;
-		if((root->letter = hfletter_from_stream(stream, (char *)&readch, &readchi)) == EOF){
+		if((root->letter = hfletter_from_stream(stream, &readch, &readchi)) == EOF){
 			hftree_free(tree);
 			return NULL;
 		}
@@ -129,7 +129,7 @@ struct hftree *hftree_from_stream(FILE *stream){
 			*(stackp++) = curr;
 			parent = curr;
 		}else{
-			if((curr->letter = hfletter_from_stream(stream, (char *)&readch, &readchi)) == EOF){
+			if((curr->letter = hfletter_from_stream(stream, &readch, &readchi)) == EOF){
 				hftree_free(tree);
 				return NULL;
 			}
@@ -141,8 +141,8 @@ struct hftree *hftree_from_stream(FILE *stream){
 	return tree;
 }
 
-short hfletter_from_stream(FILE *stream, char *currc, bitpos_t *currci){
-	char letter;
+short hfletter_from_stream(FILE *stream, int *currc, bitpos_t *currci){
+	unsigned char letter;
 	letter = 0;
 	for(bitpos_t i = 7; i != 255; i--){
 		BIT_OR(letter, i, BIT_CHECK(*currc, *currci));
@@ -152,6 +152,7 @@ short hfletter_from_stream(FILE *stream, char *currc, bitpos_t *currci){
 			*currci = 7;
 		}
 	}
+
 	return letter;
 }
 

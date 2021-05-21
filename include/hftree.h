@@ -66,7 +66,7 @@ void hftree_free(struct hftree *self);
  * every hfnode weight is set to 0 and the ltnodes association table is unavailable. 
  */
 struct hftree *hftree_from_stream(FILE *stream);
-short hfletter_from_stream(FILE *stream, char *currc, bitpos_t *currci);
+short hfletter_from_stream(FILE *stream, int *currc, bitpos_t *currci);
 /* 
  * Encode the hftree at self into the provided stream.
  * The encoding stores only the original shape and letters.
