@@ -9,6 +9,10 @@
 #include <bitops.h>
 #endif
 
+#ifndef _CONFIG_H
+#include <config.h>
+#endif
+
 #define _CLI_H 1
 
 int process_args(int argc, char **argv);

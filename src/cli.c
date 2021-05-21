@@ -12,6 +12,9 @@
 char RDBUF[RDBUFSIZE];
 char WRBUF[WRBUFSIZE];
 
+FLAGS_DECLARATION;
+ARGS_DECLARATION;
+
 int process_args(int argc, char **argv){
     FILE *src, *dst;
     char *src_file_name;
@@ -150,12 +153,6 @@ void process_code(int return_code){
 		eprintf("%d: unhandled\n", return_code);
 		break;
 	}
-
-    for(size_t i = 0; i < ARGSC; i++){
-        if(ARGS[i].mallocd){
-            free(ARGS[i].value);
-        }
-    }
 }
 
 int read_args(int argc, char **argv){
@@ -180,7 +177,7 @@ void read_flags(char *flag_str){
 
     if(flag_str[0] == '-'){
         flag_str++;
-        for(size_t i = 0; i < FLAGSC; i++){
+        for(size_t i = 0; i < FLAGSMAX; i++){
             if(FLAGS[i].name != NULL && strcmp(flag_str, FLAGS[i].name) == 0)
                 FLAGS[i].is_present = 1;
         }
@@ -211,7 +208,7 @@ void print_help(void){
         "\n" 
         "FLAGS:"
     );
-    for(i = 0; i < FLAGSC; i++){
+    for(i = 0; i < FLAGSMAX; i++){
         if(FLAGS[i].name != NULL){
             printf("\t-%c, --%s\n", (char)i, FLAGS[i].name);
             printf("\t\t%s\n\n", FLAGS[i].description);
