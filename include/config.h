@@ -42,15 +42,15 @@ struct flag{
 extern struct flag FLAGS[FLAGSMAX];
 #define FLAGS_DECLARATION \
     struct flag FLAGS[FLAGSMAX] = { \
-            [FLAG_DECOMPRESS]   = {"decompress",   "Decompress an hfc SRC_FILE into DST_FILE", 0}, \
-            [FLAG_FORCE]        = {"force",        "Force decompression of any file format",   0}, \
-            [FLAG_NO_OVERWRITE] = {"no-overwrite", "Do not overwrite DST_FILE if it exists",   0}, \
-            [FLAG_STDOUT]       = {"stdout",       "Use stdout as DST_FILE",                   0}, \
-            [FLAG_TIME]         = {"time",         "Print the time it took to finish",         0}, \
-            [FLAG_HELP]         = {"help",         "Print help information",                   0}, \
-            [FLAG_VERSION]      = {"version",      "Print version",                            0}, \
-            [FLAG_LICENSE]      = {"license",      "Print license",                            0}, \
-        }
+        [FLAG_DECOMPRESS]   = {"decompress",   "Decompress an hfc SRC_FILE into DST_FILE", 0}, \
+        [FLAG_FORCE]        = {"force",        "Force decompression of any file format",   0}, \
+        [FLAG_NO_OVERWRITE] = {"no-overwrite", "Do not overwrite DST_FILE if it exists",   0}, \
+        [FLAG_STDOUT]       = {"stdout",       "Use stdout as DST_FILE",                   0}, \
+        [FLAG_TIME]         = {"time",         "Print the time it took to finish",         0}, \
+        [FLAG_HELP]         = {"help",         "Print help information",                   0}, \
+        [FLAG_VERSION]      = {"version",      "Print version",                            0}, \
+        [FLAG_LICENSE]      = {"license",      "Print license",                            0}, \
+    }
 
 #define ARGSC 2
 struct arg{
