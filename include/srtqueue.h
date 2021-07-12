@@ -1,15 +1,15 @@
-#ifndef _SRTQUEUE_H
+#ifndef SRTQUEUE_H
 /* ============== */
 
 #ifndef _STDLIB_H
 #include <stdlib.h>
 #endif
 
-#ifndef _HFTREE_H
+#ifndef HFTREE_H
 #include <hftree.h>
 #endif
 
-#define _SRTQUEUE_H 1
+#define SRTQUEUE_H 1
 
 /* Type of items stored in the srtqueue. */
 typedef struct hfnode *srtq_item_t;

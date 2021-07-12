@@ -35,7 +35,7 @@ huffc [FLAGS] [SRC_FILE] [DST_FILE]
 * Using the `--stdout` flag.
 
 The list of all available flags can be seen by
-using the `--help` flag or in the [config.h][config] file.
+using the `--help` flag.
 
 ## The hfc format
 
@@ -55,7 +55,7 @@ the willpower to rewrite a most of huff)*.
 
 For no particular reason i decided to create my own,
 arbitrary set of return codes signifying different errors,
-all of which can be seen in the [errdef.h][errdef] file.
+all of which can be seen in the [meta.h][meta] file.
 
 ## Contributing
 
@@ -63,5 +63,4 @@ I appreciate any bug reports/criticism coming my way,
 but I doubt anyone cares anyway.
 
 [huff]:https://github.com/kxlsx/huffman-coding-rs/tree/master/huff
-[errdef]:https://github.com/kxlsx/huffc/blob/main/include/errdef.h
-[config]:https://github.com/kxlsx/huffc/blob/main/include/config.h
+[meta]:https://github.com/kxlsx/huffc/blob/main/include/meta.h

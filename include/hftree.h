@@ -1,4 +1,4 @@
-#ifndef _HFTREE_H
+#ifndef HFTREE_H
 /* ============== */
 
 #ifndef _STDLIB_H
@@ -8,11 +8,11 @@
 #include <stdio.h>
 #endif
 
-#ifndef _BITOPS_H
+#ifndef BITOPS_H
 #include <bitops.h>
 #endif
 
-#define _HFTREE_H 1
+#define HFTREE_H 1
 
 /* Letter in a non-letter branch (joint branch) */
 #define HFTREE_NULL_LETTER (-1)

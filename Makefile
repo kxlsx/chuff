@@ -14,6 +14,7 @@
 # make release     -> Build executable with CFLAGS_RELEASE.
 # make release run -> Build executable with CFLAGS_RELEASE, then run it.
 # make clean       -> Remove everything in OUTPUT_DIR and OBJ_DIR.
+# Use the environment variable ARGS to pass arguments to 'run'.
 #
 # GENERIC BEHAVIOUR:
 # Use CC to compile every file with the SRC_SUFFIX in SRC_DIR,
@@ -82,7 +83,7 @@ SUBDIRS  = $(shell find $1 -type d)
 endif
 
 # Every SRC is translated into an object of the same name, but placed in OBJ_DIR.
-# If SRC is in a subdir, the subdir's name is pushed at the front of name,
+# If SRC is in a subdir, the subdir's name is pushed at the front of SRC's name,
 # followed by OBJ_SUBDIR_SEP.
 # As a result, OBJ_SUBDIR_SEP should not appear in any SRC.
 OBJ_SUBDIR_SEP := __
@@ -122,7 +123,7 @@ set_release_flags:
 	$(eval CFLAGS_RUNTIME := $(CFLAGS_RELEASE) $(CFLAGS))
 
 run: all
-	$(call FIXPATH,./$(EXEC))
+	$(call FIXPATH,./$(EXEC)) $(ARGS)
 	@echo Executing complete.
 
 clean:

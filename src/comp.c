@@ -1,7 +1,7 @@
 #include <comp.h>
 #include <bitops.h>
 #include <hftree.h>
-#include <errdef.h>
+#include <meta.h>
 
 int compress_to_stream(FILE *src, FILE *dst){
 	size_t occ[256] = {0};

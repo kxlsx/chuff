@@ -1,14 +1,12 @@
-#ifndef _BITOPS_H
+#ifndef BITOPS_H
 /* ============== */
 
-#define _BITOPS_H 1
+#define BITOPS_H 1
 
 /* Type representing a bit's position */
 typedef unsigned char bitpos_t;
 /* Type representing the number of bits used for padding. */
 typedef unsigned char bitpadding_t;
-/* Boolean type */
-typedef unsigned char bool_t; 
 
 /* OR bit b and the i'th bit of n. */
 #define BIT_OR(n, i, b) \

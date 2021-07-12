@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include <hftree.h>
 #include <srtqueue.h>
@@ -66,7 +67,7 @@ struct hftree *hftree_from_stream(FILE *stream){
 	struct hfnode *root, *curr, *parent;
 	int readch;
 	bitpos_t readchi;
-	bool_t is_null_node, is_right;
+	bool is_null_node, is_right;
 
 	if((tree = calloc(1, sizeof(struct hftree))) == NULL)
 		return NULL;
@@ -162,7 +163,7 @@ bitpos_t hftree_to_stream(struct hftree *self, FILE *stream){
 	hfletter_t letter;
 	int ch;
 	bitpos_t chi;
-	bool_t is_null_letter;
+	bool is_null_letter;
 
     stackp = stack;
     *(stackp++) = curr = self->root;
