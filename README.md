@@ -8,11 +8,11 @@ you can try do 'decompress' every file imaginable just for kicks.
 
 ## Building
 
-To build/debug use these commands:
+To build/debug use these rules:
 
 ```bash
 make                # build for debug
-make release        # build with max optimizations
+make release        # build with release flags
 make run            # build and run
 make clean          # clean the output directory
 ```
@@ -49,7 +49,7 @@ for the header and data.
 It's almost the same as the hff format in [**huff**][huff],
 but it stores less garbage; as a result both programs are currently
 incompatible *(and they're going to stay that way until I muster up
-the willpower to rewrite a most of huff)*.
+the willpower to rewrite most of huff)*.
 
 ## Return codes
 
