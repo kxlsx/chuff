@@ -16,48 +16,58 @@
 struct hftree *hftree_new(size_t occ[256]){
     struct hftree *tree;
 	struct hfnode *node, *min_left, *min_right;
-    struct srtqueue *nqueue;
+    struct srtqueue *node_queue;
 
-    if((tree = calloc(1, sizeof(struct hftree))) == NULL)
-		return NULL;
+	tree = calloc(1, sizeof(struct hftree));
+    if(tree == NULL) return NULL;
 
-	if((nqueue = srtqueue_new()) == NULL)
-		return NULL;
+	node_queue = srtqueue_new();
+	if(node_queue == NULL) return NULL;
+
+	/* fill node_queue with nodes 
+	 * made from non empty occ entries 
+	 */
 	for(short i = 0; i < 256; i++){
 		if(occ[i] != 0){
-			if((node = malloc(sizeof(struct hfnode))) == NULL) 
-				return NULL;
+			node = malloc(sizeof(struct hfnode));
+			if(node == NULL) return NULL;
+
 			node->left = node->right = node->parent = NULL;
 			node->letter = i;
 			node->weight = occ[i];
             tree->ltnodes[i] = node;
-			if(srtqueue_push(nqueue, node) > 0)
+			if(srtqueue_push(node_queue, node) > 0)
 				return NULL;
 		}
 	}
 	
-	while(srtqueue_len(nqueue) > 1){
-		min_left = srtqueue_pop(nqueue);
-		min_right = srtqueue_pop(nqueue);
-		if((node = malloc(sizeof(struct hfnode))) == NULL) 
-			return NULL;
+	/* construct the hftree */
+	while(srtqueue_len(node_queue) > 1){
+		node = malloc(sizeof(struct hfnode));
+		if(node == NULL) return NULL;
+
+		min_left = srtqueue_pop(node_queue);
+		min_right = srtqueue_pop(node_queue);
 		min_left->parent = min_right->parent = node;
+
 		node->left = min_left;
 		node->right = min_right;
 		node->parent = NULL;
 		node->letter = HFTREE_NULL_LETTER;
 		node->weight = min_left->weight + min_right->weight;
-		if(srtqueue_push(nqueue, node) > 0)
+
+		if(srtqueue_push(node_queue, node) > 0)
 			return NULL;
 	}
-	if(srtqueue_is_empty(nqueue)){
+	if(srtqueue_is_empty(node_queue)){
 		free(tree);
-		srtqueue_free(nqueue);
+		srtqueue_free(node_queue);
 		return NULL;
 	}
-	tree->root = srtqueue_pop(nqueue);
+	/* set root to be the last node in the queue */
+	tree->root = srtqueue_pop(node_queue);
 
-	srtqueue_free(nqueue);
+	srtqueue_free(node_queue);
     return tree;
 }
 
@@ -65,26 +75,33 @@ struct hftree *hftree_from_stream(FILE *stream){
 	struct hftree *tree;
 	struct hfnode *stack[HFNODE_STACK_SIZE], **stackp;
 	struct hfnode *root, *curr, *parent;
-	int readch;
-	bitpos_t readchi;
+	int readchar;
+	bitpos_t readchar_i;
 	bool is_null_node, is_right;
 
-	if((tree = calloc(1, sizeof(struct hftree))) == NULL)
-		return NULL;
+	stackp = stack;
 
-	if((readch = getc(stream)) == EOF){
+	tree = calloc(1, sizeof(struct hftree));
+	if(tree == NULL) return NULL;
+
+	readchar = getc(stream);
+	if(readchar == EOF){
 		hftree_free(tree);
 		return NULL;
 	}
-	readchi = 6;
+	readchar_i = 6;
 
-	if(!BIT_CHECK(readch, 7)){
-		if((root = malloc(sizeof(struct hfnode))) == NULL)
-			return NULL;
-		if((root->letter = hfletter_from_stream(stream, &readch, &readchi)) == EOF){
+	/* check if the encoded tree is a single letter branch */
+	if(!BIT_CHECK(readchar, 7)){
+		root = malloc(sizeof(struct hfnode));
+		if(root == NULL) return NULL;
+
+		root->letter = hfletter_from_stream(stream, &readchar, &readchar_i);
+		if(root->letter == EOF){
 			hftree_free(tree);
 			return NULL;
 		}
+
 		root->weight = 0;
 		root->parent = NULL;
 		root->left = NULL;
@@ -93,64 +110,74 @@ struct hftree *hftree_from_stream(FILE *stream){
 		return tree;
 	}
 
-	stackp = stack;
+	/* alloc a root node and push it onto the stack */
+	root = malloc(sizeof(struct hfnode));
+	if(root == NULL)return NULL;
 
-	if((root = malloc(sizeof(struct hfnode))) == NULL)
-		return NULL;
 	tree->root = root;
 	root->letter = HFTREE_NULL_LETTER;
 	root->weight = 0;
 	root->parent = NULL;
 	*(stackp++) = parent = root;
+
 	is_right = 0;
 	while(stackp != stack){
-		if((curr = malloc(sizeof(struct hfnode))) == NULL)
-			return NULL;
+		/* alloc a node */
+		curr = malloc(sizeof(struct hfnode));
+		if(curr == NULL) return NULL;
 		curr->weight = 0;
 		curr->parent = parent;
 
 		if(is_right){
 			parent->right = curr;
+			/* go back up two nodes in the stack */ 
 			parent = *((--stackp) - 1);
 		}else{
 			parent->left = curr;
 		}
 
-		is_null_node = BIT_CHECK(readch, readchi);
-		if(--(readchi) == 255){
-			if((readch = getc(stream)) == EOF){
+		/* check whether curr is a null or letter node */
+		is_null_node = BIT_CHECK(readchar, readchar_i);
+		/* refill readchar if needed */
+		if(--(readchar_i) == 255){
+			readchar = getc(stream);
+			if(readchar == EOF){
 				hftree_free(tree);
 				return NULL;
 			}
-			readchi = 7;
+			readchar_i = 7;
 		}
 		if(is_null_node){
+			/* set curr as a null node and push it onto the stack */
 			curr->letter = HFTREE_NULL_LETTER;
 			is_right = 0;
 			*(stackp++) = curr;
 			parent = curr;
 		}else{
-			if((curr->letter = hfletter_from_stream(stream, &readch, &readchi)) == EOF){
+			/* read curr's letter from stream */ 
+			curr->letter = hfletter_from_stream(stream, &readchar, &readchar_i);
+			if(curr->letter == EOF){
 				hftree_free(tree);
 				return NULL;
 			}
 			curr->left = NULL;
 			curr->right = NULL;
+			/* set the next node to be right */
 			is_right = 1;
 		}
 	}
 	return tree;
 }
 
-short hfletter_from_stream(FILE *stream, int *currc, bitpos_t *currci){
+short hfletter_from_stream(FILE *stream, int *currchar, bitpos_t *currchar_i){
 	unsigned char letter;
 	letter = 0;
 	for(bitpos_t i = 7; i != 255; i--){
-		BIT_OR(letter, i, BIT_CHECK(*currc, *currci));
-		if(--(*currci) == 255){
-			if((*currc = getc(stream)) == EOF)
-				return EOF;
-			*currci = 7;
+		BIT_OR(letter, i, BIT_CHECK(*currchar, *currchar_i));
+		if(--(*currchar_i) == 255){
+			*currchar = getc(stream);
+			if(*currchar == EOF) return EOF;
+			*currchar_i = 7;
 		}
 	}
 
@@ -159,62 +186,71 @@ short hfletter_from_stream(FILE *stream, int *currc, bitpos_t *currci){
 
 bitpos_t hftree_to_stream(struct hftree *self, FILE *stream){
 	struct hfnode *stack[HFNODE_STACK_SIZE], **stackp;
-	struct hfnode *curr, *child;
+	struct hfnode *curr;
 	hfletter_t letter;
-	int ch;
-	bitpos_t chi;
+	int charbuf;
+	bitpos_t charbuf_i;
 	bool is_null_letter;
 
     stackp = stack;
+	/* push the root onto the stack */ 
     *(stackp++) = curr = self->root;
-	ch = 0;
-	chi = 7;
+	
+	charbuf = 0;
+	charbuf_i = 7;
     while(stack != stackp){
+		/* pop a branch from the stack and get its data */
         curr = *(--stackp);
 		letter = curr->letter;
-		BIT_OR(ch, chi, (is_null_letter = (letter == HFTREE_NULL_LETTER)));
-		if(--chi == 255){
-			putc(ch, stream);
-			ch = 0;
-			chi = 7;
+		is_null_letter = (letter == HFTREE_NULL_LETTER);
+
+		/* write the current branch into charbuf
+		 * (letter branch -> 0, null branch -> 1)
+		 */
+		BIT_OR(charbuf, charbuf_i, is_null_letter);
+		/* flush charbuf into stream if needed */
+		if(--charbuf_i == 255){
+			putc(charbuf, stream);
+			charbuf = 0;
+			charbuf_i = 7;
 		}
 		if(is_null_letter){
-			if((child = curr->right) != NULL) 
-				*(stackp++) = child;
-			if((child = curr->left) != NULL) 
-				*(stackp++) = child;
+			/* push children of the null branch onto the stack */
+			if(curr->right != NULL) *(stackp++) = curr->right;
+        	if(curr->left != NULL) *(stackp++) = curr->left;
 		}else{
+			/* write the letter into stream*/
 			for(bitpos_t i = 7; i != 255; i--){
-				BIT_OR(ch, chi, BIT_CHECK(letter, i));
-				if(--chi == 255){
-					putc(ch, stream);
-					ch = 0;
-					chi = 7;
+				BIT_OR(charbuf, charbuf_i, BIT_CHECK(letter, i));
+				if(--charbuf_i == 255){
+					putc(charbuf, stream);
+					charbuf = 0;
+					charbuf_i = 7;
 				}
 			}
 		}
     }
-	if(chi != 7){
-		putc(ch, stream);
-		return chi + 1;
+	/* flush charbuf into stream if needed */
+	if(charbuf_i != 7){
+		putc(charbuf, stream);
+		return charbuf_i + 1;
 	}
 	return 0;
 }
 
 void hftree_free(struct hftree *self){
 	struct hfnode *stack[HFNODE_STACK_SIZE], **stackp; 
-	struct hfnode *curr, *child;
+	struct hfnode *curr;
 
+	/* free every node using postorder traversal */
     stackp = stack;
 	if(self->root != NULL)
     	*(stackp++) = curr = self->root;
     while(stack != stackp){
         curr = *(--stackp);
-        if((child = curr->right) != NULL) 
-            *(stackp++) = child;
-        if((child = curr->left) != NULL) 
-            *(stackp++) = child;
-         free(curr);
+        if(curr->right != NULL) *(stackp++) = curr->right;
+        if(curr->left != NULL) *(stackp++) = curr->left;
+        free(curr);
     }
     free(self);
 }

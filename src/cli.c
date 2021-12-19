@@ -17,209 +17,202 @@
 char RDBUF[RDBUFSIZE];
 char WRBUF[WRBUFSIZE];
 
-/* Used at exit when allocated a value into ARGS[1].value */
-void free_DST_PATH(){
-    free(ARGS[1].value);
+/* Returns the file name from src_path with
+ * the EXTENSION trimmed out.
+ * Will print errors to stderr on error.
+ */
+char *get_dst_path_decompress(char *src_path){
+    char *dst_path;
+
+    if(strcmp_safe(fextension(src_path), EXTENSION) != 0){
+        eprintf("\"%s\": Unrecognised format, ignoring.\n", src_path);
+        return NULL;
+    }
+
+    dst_path = fname(src_path);
+    if(dst_path == NULL){
+        eprintf("\"%s\" is a directory.\n", src_path);
+        return NULL;
+    }
+
+    dst_path = fnoextension(dst_path);
+    if(FLAG(FLAG_NO_OVERWRITE).is_present && fexists(dst_path)){
+        eprintf("\"./%s\": Exists, ignoring.\n", dst_path);
+        free(dst_path);
+        return NULL;
+    }
+
+    return dst_path;
+}
+
+/* Returns the file name from src_path with
+ * EXTENSION appended at the end.
+ * Will print errors to stderr on error.
+ */
+char *get_dst_path_compress(char *src_path){
+    char *dst_path;
+
+    dst_path = fname(src_path);
+    if(dst_path == NULL){
+        eprintf("\"%s\" is a directory.\n", src_path);
+        return NULL;
+    }
+
+    dst_path = fwithextension(dst_path, EXTENSION, 3);
+    if(FLAG(FLAG_NO_OVERWRITE).is_present && fexists(dst_path)){
+        eprintf("\"./%s\": Exists, ignoring.\n", dst_path);
+        free(dst_path);
+        return NULL;
+    }
+    return dst_path;
 }
 
 int process_args(int argc, char **argv){
+    char **args, **argsp;
+    char *(*get_dst_path_fn)(char *);
+    char *src_path, *dst_path;
     FILE *src, *dst;
-    char *src_file_name;
-    bool is_correct_format;
-    int (* main_fn)(FILE *, FILE *), main_ret;
-    src = dst = NULL;
-
-    if(read_args(argc, argv) == ERR_TOO_MANY_ARGS)
-        return ERR_TOO_MANY_ARGS;
-
-    if(ARGS[0].value == NULL){
-        if(FLAG(FLAG_HELP).is_present){
-            print_help();
-            return 0;
-        }else if(FLAG(FLAG_LICENSE).is_present){
-            print_license();
-            return 0;
-        }else if(FLAG(FLAG_VERSION).is_present){
-            print_version();
-            return 0;
-        }else{
-            return ERR_NO_ARGS_PROVIDED;
-        }
+    int (*main_fn)(FILE *, FILE *), main_ret;
+ 
+    args = argsp = read_args(argc, argv);
+    if(args == NULL){
+        eprintf("Failed allocating memory.\n");
+        return OK;
     }
-    
+
+    /* only print meta information if flags are present */
+    if(FLAG(FLAG_HELP).is_present){
+        print_help();
+        return OK;
+    }else if(FLAG(FLAG_LICENSE).is_present){
+        print_license();
+        return OK;
+    }else if(FLAG(FLAG_VERSION).is_present){
+        print_version();
+        return OK;
+    }
+    if(*args == NULL){
+        print_usage();
+        return OK;
+    }
+
+    /* set appropriate functions */
     if(FLAG(FLAG_DECOMPRESS).is_present){
-        is_correct_format = strcmp_safe(fextension(ARGS[0].value), EXTENSION) == 0;
-        if(!is_correct_format && !FLAG(FLAG_FORCE).is_present)
-            return ERR_UNRECOGNIZED_FORMAT;
+        get_dst_path_fn = get_dst_path_decompress;
         main_fn = decompress_to_stream;
     }else{
+        get_dst_path_fn = get_dst_path_compress;
         main_fn = compress_to_stream;
     }
 
-    if(ARGS[1].value == NULL){
-        if(FLAG(FLAG_STDOUT).is_present)
+    /* for every provided file path */
+    dst_path = NULL;
+    while((src_path = *(argsp++)) != NULL){
+        /* try to open src */
+        src = fopen(src_path, "rb");
+        if(src == NULL){
+            eprintf("\"%s\": %s.\n", src_path, strerror(errno));
+            free(dst_path);
+            continue;
+        }
+
+        /* try to open dst */
+        if(FLAG(FLAG_STDOUT).is_present){
             dst = stdout;
-        else{
-            if((src_file_name = fname(ARGS[0].value)) == NULL)
-                return ERR_DIR_NAME_PROVIDED;
-            if(FLAG(FLAG_DECOMPRESS).is_present){
-                if(is_correct_format && strcmp(ARGS[0].value, "." EXTENSION) != 0){
-                    ARGS[1].value = fnoextension(src_file_name);
-                }else{
-                    return ERR_NO_DST_PATH;
-                }
-            }else{
-                ARGS[1].value = fwithextension(src_file_name, EXTENSION, 3);
-            }
-            atexit(free_DST_PATH);
-        }
-    }
-    if((src = fopen(ARGS[0].value, "rb")) == NULL)
-        return ERR_READ_FAIL;
-    if(ARGS[1].value != NULL){
-        if(fexists(ARGS[1].value) && FLAG(FLAG_NO_OVERWRITE).is_present){
-            fclose(src);
-            return ERR_NO_OVERWRITE;
-        }
-        if((dst = fopen(ARGS[1].value, "wb")) == NULL){
-            fclose(src);
-            return ERR_WRITE_FAIL; 
-        }
-    }
-    setvbuf(src, RDBUF, _IOFBF, RDBUFSIZE);
-    setvbuf(dst, WRBUF, _IOFBF, WRBUFSIZE);
-
-    if(FLAG(FLAG_TIME).is_present){
-        clock_t ts = clock();
-        main_ret = main_fn(src, dst);
-        /* Write time to stderr when using FLAG_STDOUT just in case */
-        fprintf(
-            (FLAG(FLAG_STDOUT).is_present) ? stderr : stdout,
-            "%lfs\n", ((double) clock() - ts) / CLOCKS_PER_SEC
-        );
-    }else{
-        main_ret = main_fn(src, dst);
-    }
-    
-    fclose(src);
-    fclose(dst);
-    return main_ret;
-}
-
-void process_code(int return_code){
-    switch(return_code){
-    case 0:
-        break;
-	case ERR_UNEXPECTED_EOF:
-		eprintf("\"%s\": Unexpected EOF\n", ARGS[0].value);
-		break;
-	case ERR_READ_FAIL:
-	    eprintf("\"%s\": %s\n", ARGS[0].value, strerror(errno));
-		break;
-	case ERR_WRITE_FAIL:
-        if(ARGS[1].value == NULL) 
-            ARGS[1].value = "stdout";
-		eprintf("\"%s\": %s\n", ARGS[1].value, strerror(errno));
-		break;
-	case ERR_HFTREE_NEW_FAIL:
-		eprintf(
-			"\"%s\": Failed constructing header information\n", 
-			ARGS[0].value
-		);
-		break;
-	case ERR_HFTREE_FROM_STREAM_FAIL:
-		eprintf(
-			"\"%s\": Failed reading header information\n", 
-			ARGS[0].value
-		);
-		break;
-	case ERR_NO_ARGS_PROVIDED:
-        eprintf("USAGE:\n\t" PROGRAM_NAME " [FLAGS] ");
-        for(unsigned i = 0; i < ARGSC; i++){
-            eprintf("[%s] ", ARGS[i].name);
-        }
-        eprintf("\nFor more information try --help\n");
-		break;
-	case ERR_TOO_MANY_ARGS:
-		eprintf("Too many arguments (max: %d)\n", ARGSC);
-		break;
-	case ERR_UNRECOGNIZED_FORMAT:
-		eprintf(
-        	"\"%s\": Unrecognized file format "
-			"(use -f to force decompression)\n", 
-            ARGS[0].value
-        );
-		break;
-	case ERR_NO_OVERWRITE:
-		eprintf("\"%s\": File exists\n", ARGS[1].value);
-		break;
-    case ERR_NO_DST_PATH:
-        eprintf("Cannot infer path to DST_FILE "
-        "(provide it as the second argument)\n");
-        break;
-    case ERR_DIR_NAME_PROVIDED:
-        eprintf("\"%s\": Is a directory path\n", ARGS[0].value);
-        break;
-	default:
-		eprintf("%d: unhandled\n", return_code);
-		break;
-	}
-}
-
-int read_args(int argc, char **argv){
-    unsigned pathc;
-
-    pathc = 0;
-    for(int argi = 1; argi < argc; argi++){
-        if(argv[argi][0] == '-'){
-            read_flags(argv[argi] + 1);
         }else{
-            ARGS[pathc].value = argv[argi];
-            if((pathc++) == ARGSC){
-                return ERR_TOO_MANY_ARGS;
+            dst_path = get_dst_path_fn(src_path);
+            if(dst_path == NULL){
+                fclose(src);
+                continue;
+            };
+
+            dst = fopen(dst_path, "wb"); 
+            if(dst == NULL){
+                eprintf("\"%s\": %s.\n", dst_path, strerror(errno));
+                free(dst_path);
+                fclose(src);
+                continue;
             }
         }
+  
+        /* set up read and write buffers */
+        setvbuf(src, RDBUF, _IOFBF, RDBUFSIZE);
+        setvbuf(dst, WRBUF, _IOFBF, WRBUFSIZE);
+
+        /* do the compression/decompression */
+        if(FLAG(FLAG_TIME).is_present){
+            clock_t ts = clock();
+            main_ret = main_fn(src, dst);
+            /* Write time to stderr when using FLAG_STDOUT just in case */
+            fprintf(
+                (FLAG(FLAG_STDOUT).is_present) ? stderr : stdout,
+                "%lfs\n", ((double) clock() - ts) / CLOCKS_PER_SEC
+            );
+        }else{
+            main_ret = main_fn(src, dst);
+        }
+
+        if(main_ret != OK){
+            /* handle any resulting errors */
+            switch(main_ret){
+            case ERR_UNEXPECTED_EOF:
+                eprintf("\"%s\": Unexpected EOF\n", src_path);
+                break;
+            case ERR_READ_FAIL:
+                eprintf("\"%s\": %s.\n", src_path, strerror(errno));
+                break;
+            case ERR_WRITE_FAIL:
+                eprintf("\"%s\": %s.\n", (dst_path == NULL) ? "stdout": dst_path, strerror(errno));
+                break;
+            case ERR_HFTREE_NEW_FAIL:
+                eprintf(
+                    "\"%s\": Failed constructing header information\n", 
+                    src_path
+                );
+                break;
+            case ERR_HFTREE_FROM_STREAM_FAIL:
+                eprintf(
+                    "\"%s\": Failed reading header information\n", 
+                    src_path
+                );
+                break;
+            default:
+                eprintf("%d: unhandled\n", main_ret);
+                break;
+            }
+
+            /* remove the unfinished dst file */
+            if(dst_path != NULL) remove(dst_path);
+        }
+
+        free(dst_path);
+        fclose(src);
+        fclose(dst);
     }
-    return 0;
+
+    free_args(args);
+    return OK;
 }
 
-void read_flags(char *flag_str){
-    char c;
-
-    if(flag_str[0] == '-'){
-        flag_str++;
-        for(unsigned flagi = 0; flagi < FLAGSMAX; flagi++){
-            if(FLAGS[flagi].ch != '\0' && strcmp(flag_str, FLAGS[flagi].name) == 0)
-                FLAGS[flagi].is_present = 1;
-        }
-    }else{
-        while((c = *(flag_str++)) != '\0'){
-            if(FLAG(c).ch != '\0'){
-                FLAG(c).is_present = 1;
-            }
-        }
-    }
+void print_usage(void){
+    puts(
+        "USAGE:\n" 
+        "\t" PROGRAM_NAME " [FLAGS]... [FILES]...\n"
+        "Type \"" PROGRAM_NAME " -h\" for help."
+    );
 }
 
 void print_help(void){
-    unsigned i;
-
     puts(
         PROGRAM_NAME " v" VERSION "\n"
         AUTHORS "\n"
         DESCRIPTION "\n"
         "\n"
-        "USAGE:"
-    );
-    printf("\t" PROGRAM_NAME " [FLAGS] ");
-    for(i = 0; i < ARGSC; i++){
-        printf("[%s] ", ARGS[i].name);
-    }
-    puts(
-        "\n" 
+        "USAGE:\n"
+        "\t" PROGRAM_NAME " [FLAGS]... [FILES]...\n"
         "FLAGS:"
     );
-    for(i = 0; i < FLAGSMAX; i++){
+    for(unsigned i = 0; i < FLAGSMAX; i++){
         if(FLAGS[i].ch != '\0'){
             printf("\t-%c, --%s\n", FLAGS[i].ch, FLAGS[i].name);
             printf("\t\t%s\n\n", FLAGS[i].description);
@@ -242,3 +235,50 @@ void print_version(void){
     );
 }
 
+char **read_args(int argc, char **argv){
+    char **args, **argsp;
+
+    args = argsp = malloc(sizeof(char *) * argc);
+    if(args == NULL) return NULL;
+
+    for(int i = 1; i < argc; i++){
+        if(argv[i][0] == '-'){
+            parse_flag(argv[i] + 1);
+        }else{
+            *argsp = malloc(strlen(argv[i]) + 1);
+            if(*argsp == NULL) return NULL;
+
+            strcpy(*argsp, argv[i]);
+            argsp++;
+        }
+    }
+    *argsp = NULL;
+    return args;
+}
+
+void free_args(char **args){
+    char **argsp;
+    
+    argsp = args;
+    while(*argsp != NULL) free(*(argsp++));
+    free(args);
+}
+
+void parse_flag(char *flag_str){
+    char c;
+
+    if(flag_str[0] == '-'){
+        flag_str++;
+        for(unsigned flagi = 0; flagi < FLAGSMAX; flagi++){
+            if(FLAGS[flagi].ch != '\0' 
+            && strcmp(flag_str, FLAGS[flagi].name) == 0)
+                FLAGS[flagi].is_present = 1;
+        }
+    }else{
+        while((c = *(flag_str++)) != '\0'){
+            if(FLAG(c).ch != '\0'){
+                FLAG(c).is_present = 1;
+            }
+        }
+    }
+}

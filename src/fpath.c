@@ -7,10 +7,10 @@
 bool fexists(char *fpath){
     FILE *f;
     if((f = fopen(fpath, "r")) == NULL){
-        return 0;
+        return false;
     }else{
         fclose(f);
-        return 1;
+        return true;
     }
 }
 

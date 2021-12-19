@@ -1,4 +1,4 @@
-# generic_c_makefile v0.0.1
+# generic_c_makefile v1.0.0
 # Łukasz Dragon <lukasz.b.dragon@gmail.com>
 # This is free software. You may redistribute copies of it under the terms of
 # the GNU General Public License <https://www.gnu.org/licenses/gpl.html>.
@@ -6,7 +6,7 @@
 #
 # Template Makefile for C projects that works on Windows and *nix.
 # Although by default it's set to use gcc, you should be able to quickly
-# set it up for any C, C++ or similar lang's compiler.
+# set it up for any language's compiler.
 #
 # RULES: 
 # make             -> Build executable with CFLAGS_DEBUG.
@@ -22,30 +22,38 @@
 #     * CFLAGS
 #     * CFLAGS_DEBUG or CFLAGS_RELEASE
 #     * CFLAG_INCLUDE followed by INCLUDE_DIRS
-#     * CFLAG_NOLINK
 #     * CFLAG_OUTPUT
 # and putting the resulting .OBJ_SUFFIX files into OBJ_DIR.
-# Then link the files in OBJ_DIR using CC with flags:
-#     * CFLAGS
-#     * CFLAGS_DEBUG or CFLAGS_RELEASE
-#     * CFLAG_LIBDIR followed by LIB_DIRS
-#     * CFLAG_LIB followed by LIBS
-#     * CFLAG_OUTPUT
+# Then link the files in OBJ_DIR using LD with flags:
+#     * LDFLAGS
+#     * LDFLAGS_DEBUG or LDFLAGS_RELEASE
+#     * LDFLAG_LIBDIR followed by LIB_DIRS
+#     * LDFLAG_LIB followed by LIBS
+#     * LDFLAG_OUTPUT
 # into a file called EXEC_NAME in OUTPUT_DIR.
 
 # ========= config =========
 
-# compiler and flags
-CC     := gcc
-CFLAGS := -march=native -Wall -Wextra -Wshadow -Wundef
+# compiler
+CC := gcc -c
+CFLAGS         := -march=native -Wall -Wextra -Wshadow -Wundef
 CFLAGS_DEBUG   := -g3
 CFLAGS_RELEASE := -O3
+CFLAG_INCLUDE := -I
+CFLAG_OUTPUT  := -o
 
-CFLAG_OUTPUT   := -o
-CFLAG_NOLINK   := -c
-CFLAG_INCLUDE  := -I
-CFLAG_LIBDIR   := -L
-CFLAG_LIB      := -l
+# linker
+LD := gcc
+LDFLAGS         := $(CFLAGS)
+LDFLAGS_DEBUG   := $(CFLAGS_DEBUG)
+LDFLAGS_RELEASE := $(CFLAGS_RELEASE)
+LDFLAG_LIBDIR := -L
+LDFLAG_LIB    := -l
+LDFLAG_OUTPUT := -o
+
+# SRC and OBJ file formats
+SRC_SUFFIX := .c
+OBJ_SUFFIX := .o
 
 # directories (use normal slashes)
 SRC_DIR      := src
@@ -55,15 +63,17 @@ INCLUDE_DIRS := include
 LIB_DIRS     := 
 LIBS         := 
 
-# SRC and OBJ file formats
-SRC_SUFFIX := .c
-OBJ_SUFFIX := .o
-
-EXEC_NAME := huffc
+EXEC_NAME := chuff
 
 # ========= endconfig =========
 
-CFLAGS_RUNTIME := $(CFLAGS_DEBUG) $(CFLAGS)
+ifneq (,$(findstring release,$(MAKECMDGOALS)))
+CFLAGS  := $(CFLAGS_RELEASE) $(CFLAGS)
+LDFLAGS := $(LDFLAGS_RELEASE) $(LDFLAGS)
+else
+CFLAGS  := $(CFLAGS_DEBUG) $(CFLAGS)
+LDFLAGS := $(LDFLAGS_DEBUG) $(LDFLAGS)
+endif
 
 ifeq ($(OS),Windows_NT)
 EXEC_NAME := $(EXEC_NAME).exe
@@ -98,8 +108,8 @@ SRCS     := $(wildcard $(patsubst %,%/*$(SRC_SUFFIX),$(call SUBDIRS,$(SRC_DIR)))
 OBJS     := $(call SRC_TO_OBJ,$(SRCS))
 EXEC     := $(OUTPUT_DIR)/$(EXEC_NAME)
 INCLUDES := $(patsubst %,$(CFLAG_INCLUDE)%,$(INCLUDE_DIRS))
-LIB_DIRS := $(patsubst %,$(CFLAG_LIBDIR)%,$(LIB_DIRS))
-LIBS     := $(patsubst %,$(CFLAG_LIB)%,$(LIBS))
+LIB_DIRS := $(patsubst %,$(LDFLAG_LIBDIR)%,$(LIB_DIRS))
+LIBS     := $(patsubst %,$(LDFLAG_LIB)%,$(LIBS))
 
 # Fix backslashes just in case
 SRC_DIR     := $(call FIXPATH,$(SRC_DIR))
@@ -113,14 +123,12 @@ EXEC        := $(call FIXPATH,$(EXEC))
 INCLUDES    := $(call FIXPATH,$(INCLUDES))
 LIBS        := $(call FIXPATH,$(LIBS))
 
-.PHONY: all release set_release_flags run clean 
+.PHONY: all release run clean 
 
 all: $(EXEC)
 	@echo Building complete.
 
-release: set_release_flags all
-set_release_flags:
-	$(eval CFLAGS_RUNTIME := $(CFLAGS_RELEASE) $(CFLAGS))
+release: all
 
 run: all
 	$(call FIXPATH,./$(EXEC)) $(ARGS)
@@ -132,14 +140,14 @@ clean:
 
 # Link OBJS.
 $(EXEC): $(OBJS)
-	$(CC) $(CFLAGS_RUNTIME) \
+	$(LD) $(LDFLAGS) \
 	$(LIB_DIRS) $(LIBS) \
 		$(OBJS) \
-		$(CFLAG_OUTPUT) $(EXEC)
+		$(LDFLAG_OUTPUT) $(EXEC)
 
-# Compile SRCS without linking.
+# Compile SRCS.
 $(OBJS): $(SRCS) | $(OBJ_DIR)
-	$(CC) $(CFLAGS_RUNTIME) $(CFLAG_NOLINK) \
+	$(CC) $(CFLAGS) \
 	$(INCLUDES) \
 		$(call OBJ_TO_SRC,$@) \
 		$(CFLAG_OUTPUT) $@
