@@ -17,6 +17,7 @@
 /* ===== FLAG STUFF ===== */
 /* Flag short names. */
 #define FLAG_DECOMPRESS   'd'
+#define FLAG_REPLACE      'r'
 #define FLAG_NO_OVERWRITE 'n'
 #define FLAG_STDOUT       's'
 #define FLAG_TIME         't'
@@ -48,6 +49,7 @@ struct flag{
     bool is_present;
 }FLAGS[FLAGSMAX] = { \
     FLAG_INIT(FLAG_DECOMPRESS,   "decompress",   "Decompress [FILES] with the ." EXTENSION " suffix"), \
+    FLAG_INIT(FLAG_REPLACE,      "replace",      "Remove [FILES] upon completion"),                    \
     FLAG_INIT(FLAG_NO_OVERWRITE, "no-overwrite", "Do not overwrite files"),                            \
     FLAG_INIT(FLAG_STDOUT,       "stdout",       "Write results to stdout"),                           \
     FLAG_INIT(FLAG_TIME,         "time",         "Print the time it took to finish"),                  \

@@ -17,7 +17,7 @@ char *fname(char *fpath);
 /* Return a pointer to the start of the extension in fpath */
 char *fextension(char *fpath);
 /* Return a mallocd copy of fpath, but '.' + ext at the end */
-char *fwithextension(char *fpath, char *ext, size_t ext_len);
+char *fwithextension(char *fpath, char *ext);
 /* Return a mallocd copy of fpath without the its extension */
 char *fnoextension(char *fpath);
 

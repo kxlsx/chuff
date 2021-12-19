@@ -6,7 +6,9 @@
 
 bool fexists(char *fpath){
     FILE *f;
-    if((f = fopen(fpath, "r")) == NULL){
+
+    f = fopen(fpath, "r");
+    if(f == NULL){
         return false;
     }else{
         fclose(f);
@@ -16,32 +18,37 @@ bool fexists(char *fpath){
 
 char *fname(char *fpath){
     char *name;
+
     #ifdef _WIN32
     (name = strrchr(fpath, '\\')) ? ++name : (name = fpath);
     #else
     (name = strrchr(fpath, '/')) ? ++name : (name = fpath);
     #endif
+
     return *name != '\0' ? name : NULL;
 }
 
 char *fextension(char *fpath){
     char *ext;
-    (ext = strrchr(fpath, '.')) ? ++ext : NULL;
-    return ext;
+    return (ext = strrchr(fpath, '.')) ? ++ext : NULL;
 }
 
-char *fwithextension(char *fpath, char *ext, size_t ext_len){
+char *fwithextension(char *fpath, char *ext){
     char *result;
-    size_t fpath_len, result_len;
+    size_t fpath_len, ext_len, result_len;
     
     fpath_len = strlen(fpath);
+    ext_len = strlen(ext);
     result_len = fpath_len + ext_len + 2;
-    if((result = malloc(result_len)) == NULL)
-        return NULL;
-    result[result_len - 1] = '\0';
+
+    result = malloc(result_len);
+    if(result == NULL) return NULL;
+    
     memcpy(result, fpath, fpath_len);
     result[fpath_len] = '.';
     memcpy(result + fpath_len + 1, ext, ext_len);
+    result[result_len - 1] = '\0';
+
     return result;
 }
 
@@ -52,8 +59,12 @@ char *fnoextension(char *fpath){
     ext = fextension(fpath);
     ext_len = ext != NULL ? strlen(ext) : 0;
     result_len = strlen(fpath) - ext_len;
+
     result = malloc(result_len);
+    if(result == NULL) return NULL;
+
     memcpy(result, fpath, result_len);
     result[result_len - 1] = '\0';
+    
     return result;
 }

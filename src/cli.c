@@ -36,6 +36,11 @@ char *get_dst_path_decompress(char *src_path){
     }
 
     dst_path = fnoextension(dst_path);
+    if(dst_path == NULL){
+        eprintf("Failed allocating memory.\n");
+        return NULL;
+    }
+
     if(FLAG(FLAG_NO_OVERWRITE).is_present && fexists(dst_path)){
         eprintf("\"./%s\": Exists, ignoring.\n", dst_path);
         free(dst_path);
@@ -58,7 +63,12 @@ char *get_dst_path_compress(char *src_path){
         return NULL;
     }
 
-    dst_path = fwithextension(dst_path, EXTENSION, 3);
+    dst_path = fwithextension(dst_path, EXTENSION);
+    if(dst_path == NULL){
+        eprintf("Failed allocating memory.\n");
+        return NULL;
+    }
+
     if(FLAG(FLAG_NO_OVERWRITE).is_present && fexists(dst_path)){
         eprintf("\"./%s\": Exists, ignoring.\n", dst_path);
         free(dst_path);
@@ -152,7 +162,10 @@ int process_args(int argc, char **argv){
             main_ret = main_fn(src, dst);
         }
 
-        if(main_ret != OK){
+        if(main_ret == OK){
+            if(FLAG(FLAG_REPLACE).is_present) remove(src_path);
+        }
+        else{
             /* handle any resulting errors */
             switch(main_ret){
             case ERR_UNEXPECTED_EOF:

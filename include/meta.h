@@ -14,7 +14,7 @@
 #define PROGRAM_NAME \
     "chuff"
 #define VERSION \
-    "1.0.0"
+    "1.1.0"
 #define DESCRIPTION \
     "Compress or decompress [FILES] into the current directory (compress by default)."
 #define LICENSE \
