@@ -17,21 +17,21 @@ typedef struct hfnode *srtq_item_t;
 #define srtq_item_cmp(a, b) (a->weight < b->weight)
 
 struct srtq_node{
-    struct srtq_node *left;
-    struct srtq_node *right;
-    srtq_item_t item;
+	struct srtq_node *left;
+	struct srtq_node *right;
+	srtq_item_t item;
 };
 
 /* A queue with the order based on the srtq_item_cmp macro. */
 struct srtqueue{
-    struct srtq_node *root;
-    size_t len;
+	struct srtq_node *root;
+	size_t len;
 };
 
 #define srtqueue_len(self) \
-    ((self)->len)
+	((self)->len)
 #define srtqueue_is_empty(self) \
-    ((self)->len == 0)
+	((self)->len == 0)
 
 struct srtqueue *srtqueue_new(void);
 void srtqueue_free(struct srtqueue *self);

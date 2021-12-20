@@ -37,24 +37,24 @@ int compress_to_stream(FILE *src, FILE *dst){
 		while((readchar = getc(src)) != EOF){
 			hfcode_i = 0;
 			curr = hftree_ltnodes(hftree)[readchar];
-			/* traverse the tree from the bottom */ 
+			/* traverse the tree from the bottom */
 			while((parent = hfnode_parent(curr)) != NULL){
 				BIT_SET(
-					hfcode[hfcode_i / 8], 
-					7 - (hfcode_i % 8), 
+					hfcode[hfcode_i / 8],
+					7 - (hfcode_i % 8),
 					curr != hfnode_left(parent)
 				);
 				hfcode_i++;
 				curr = parent;
 			}
-			/* write the resulting hfcode backwards 
+			/* write the resulting hfcode backwards
 			 * into charbuf, flushing charbuf into dst
 			 * when it fills up
 			 */
 			while(--hfcode_i != 255){
 				BIT_OR(
-					charbuf, 
-					charbuf_i, 
+					charbuf,
+					charbuf_i,
 					BIT_CHECK(hfcode[hfcode_i / 8], 7 - (hfcode_i % 8))
 				);
 				if(--charbuf_i == 255){
@@ -94,7 +94,7 @@ int decompress_to_stream(FILE *src, FILE *dst){
 	int readchar, readchar_next;
 	bitpos_t readchar_i;
 	bitpadding_t padding;
-	
+
 	/* read padding data */
 	readchar = getc(src);
 	if(readchar == EOF){
@@ -143,7 +143,7 @@ int decompress_to_stream(FILE *src, FILE *dst){
 			curr = hftree_root(hftree);
 		}
 	}
-	
+
 	hftree_free(hftree);
 	return (ferror(dst) < 0) ? ERR_WRITE_FAIL : OK;
 }

@@ -6,7 +6,7 @@
 #include <srtqueue.h>
 #include <bitops.h>
 
-/* 
+/*
  * Max number of branches in a Huffman Tree with
  * a byte-based alphabet is 511 but i set it to
  * 512 just in case.
@@ -14,18 +14,18 @@
 #define HFNODE_STACK_SIZE (512 * sizeof(struct srtq_node *))
 
 struct hftree *hftree_new(size_t occ[256]){
-    struct hftree *tree;
+	struct hftree *tree;
 	struct hfnode *node, *min_left, *min_right;
-    struct srtqueue *node_queue;
+	struct srtqueue *node_queue;
 
 	tree = calloc(1, sizeof(struct hftree));
-    if(tree == NULL) return NULL;
+	if(tree == NULL) return NULL;
 
 	node_queue = srtqueue_new();
 	if(node_queue == NULL) return NULL;
 
-	/* fill node_queue with nodes 
-	 * made from non empty occ entries 
+	/* fill node_queue with nodes
+	 * made from non empty occ entries
 	 */
 	for(short i = 0; i < 256; i++){
 		if(occ[i] != 0){
@@ -35,12 +35,12 @@ struct hftree *hftree_new(size_t occ[256]){
 			node->left = node->right = node->parent = NULL;
 			node->letter = i;
 			node->weight = occ[i];
-            tree->ltnodes[i] = node;
+			tree->ltnodes[i] = node;
 			if(srtqueue_push(node_queue, node) > 0)
 				return NULL;
 		}
 	}
-	
+
 	/* construct the hftree */
 	while(srtqueue_len(node_queue) > 1){
 		node = malloc(sizeof(struct hfnode));
@@ -68,7 +68,7 @@ struct hftree *hftree_new(size_t occ[256]){
 	tree->root = srtqueue_pop(node_queue);
 
 	srtqueue_free(node_queue);
-    return tree;
+	return tree;
 }
 
 struct hftree *hftree_from_stream(FILE *stream){
@@ -130,7 +130,7 @@ struct hftree *hftree_from_stream(FILE *stream){
 
 		if(is_right){
 			parent->right = curr;
-			/* go back up two nodes in the stack */ 
+			/* go back up two nodes in the stack */
 			parent = *((--stackp) - 1);
 		}else{
 			parent->left = curr;
@@ -154,7 +154,7 @@ struct hftree *hftree_from_stream(FILE *stream){
 			*(stackp++) = curr;
 			parent = curr;
 		}else{
-			/* read curr's letter from stream */ 
+			/* read curr's letter from stream */
 			curr->letter = hfletter_from_stream(stream, &readchar, &readchar_i);
 			if(curr->letter == EOF){
 				hftree_free(tree);
@@ -192,15 +192,15 @@ bitpos_t hftree_to_stream(struct hftree *self, FILE *stream){
 	bitpos_t charbuf_i;
 	bool is_null_letter;
 
-    stackp = stack;
-	/* push the root onto the stack */ 
-    *(stackp++) = curr = self->root;
-	
+	stackp = stack;
+	/* push the root onto the stack */
+	*(stackp++) = curr = self->root;
+
 	charbuf = 0;
 	charbuf_i = 7;
-    while(stack != stackp){
+	while(stack != stackp){
 		/* pop a branch from the stack and get its data */
-        curr = *(--stackp);
+		curr = *(--stackp);
 		letter = curr->letter;
 		is_null_letter = (letter == HFTREE_NULL_LETTER);
 
@@ -217,7 +217,7 @@ bitpos_t hftree_to_stream(struct hftree *self, FILE *stream){
 		if(is_null_letter){
 			/* push children of the null branch onto the stack */
 			if(curr->right != NULL) *(stackp++) = curr->right;
-        	if(curr->left != NULL) *(stackp++) = curr->left;
+			if(curr->left != NULL) *(stackp++) = curr->left;
 		}else{
 			/* write the letter into stream*/
 			for(bitpos_t i = 7; i != 255; i--){
@@ -229,7 +229,7 @@ bitpos_t hftree_to_stream(struct hftree *self, FILE *stream){
 				}
 			}
 		}
-    }
+	}
 	/* flush charbuf into stream if needed */
 	if(charbuf_i != 7){
 		putc(charbuf, stream);
@@ -239,18 +239,18 @@ bitpos_t hftree_to_stream(struct hftree *self, FILE *stream){
 }
 
 void hftree_free(struct hftree *self){
-	struct hfnode *stack[HFNODE_STACK_SIZE], **stackp; 
+	struct hfnode *stack[HFNODE_STACK_SIZE], **stackp;
 	struct hfnode *curr;
 
 	/* free every node using postorder traversal */
-    stackp = stack;
+	stackp = stack;
 	if(self->root != NULL)
-    	*(stackp++) = curr = self->root;
-    while(stack != stackp){
-        curr = *(--stackp);
-        if(curr->right != NULL) *(stackp++) = curr->right;
-        if(curr->left != NULL) *(stackp++) = curr->left;
-        free(curr);
-    }
-    free(self);
+		*(stackp++) = curr = self->root;
+	while(stack != stackp){
+		curr = *(--stackp);
+		if(curr->right != NULL) *(stackp++) = curr->right;
+		if(curr->left != NULL) *(stackp++) = curr->left;
+		free(curr);
+	}
+	free(self);
 }

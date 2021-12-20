@@ -12,17 +12,17 @@
 
 /* Metadata */
 #define PROGRAM_NAME \
-    "chuff"
+	"chuff"
 #define VERSION \
-    "1.1.0"
+	"1.1.0"
 #define DESCRIPTION \
-    "Compress or decompress [FILES] into the current directory (compress by default)."
+	"Compress or decompress [FILES] into the current directory (compress by default)."
 #define LICENSE \
-    "This is free software. You may redistribute copies of it under the terms of\n" \
-    "the GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\n" \
-    "There is NO WARRANTY, to the extent permitted by law."
+	"This is free software. You may redistribute copies of it under the terms of\n" \
+	"the GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\n" \
+	"There is NO WARRANTY, to the extent permitted by law."
 #define AUTHORS \
-    "Łukasz Dragon <lukasz.b.dragon@gmail.com>"
+	"Łukasz Dragon <lukasz.b.dragon@gmail.com>"
 
 
 /* ===== Error codes ===== */

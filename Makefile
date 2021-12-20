@@ -8,7 +8,7 @@
 # Although by default it's set to use gcc, you should be able to quickly
 # set it up for any language's compiler.
 #
-# RULES: 
+# RULES:
 # make             -> Build executable with CFLAGS_DEBUG.
 # make run         -> Build executable with CFLAGS_DEBUG, then run it.
 # make release     -> Build executable with CFLAGS_RELEASE.
@@ -60,8 +60,8 @@ SRC_DIR      := src
 OUTPUT_DIR   := output
 OBJ_DIR      := $(OUTPUT_DIR)/obj
 INCLUDE_DIRS := include
-LIB_DIRS     := 
-LIBS         := 
+LIB_DIRS     :=
+LIBS         :=
 
 EXEC_NAME := chuff
 
@@ -123,7 +123,7 @@ EXEC        := $(call FIXPATH,$(EXEC))
 INCLUDES    := $(call FIXPATH,$(INCLUDES))
 LIBS        := $(call FIXPATH,$(LIBS))
 
-.PHONY: all release run clean 
+.PHONY: all release run clean
 
 all: $(EXEC)
 	@echo Building complete.

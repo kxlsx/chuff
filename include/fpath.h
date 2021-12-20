@@ -10,7 +10,7 @@
 
 #define FPATH_H 1
 
-/* Return 1 if the file at fpath exists */ 
+/* Return 1 if the file at fpath exists */
 bool fexists(char *fpath);
 /* Return a pointer to the start of the filename in fpath */
 char *fname(char *fpath);

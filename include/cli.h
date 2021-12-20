@@ -33,29 +33,29 @@
 
 #define FLAG_INIT(flag_char, flag_name, flag_description) \
 	[FLAG_INDEX(flag_char)] = { \
-        flag_char,              \
-        flag_name,              \
-        flag_description,       \
-        0                       \
+		flag_char,              \
+		flag_name,              \
+		flag_description,       \
+		0                       \
 	}
 /* Declaration and definition of the FLAG global variable
  * storing runtime & meta data about the flags encountered
  * upon parsing argv.
  */
 struct flag{
-    char ch;
-    char *name;
-    char *description;
-    bool is_present;
+	char ch;
+	char *name;
+	char *description;
+	bool is_present;
 }FLAGS[FLAGSMAX] = { \
-    FLAG_INIT(FLAG_DECOMPRESS,   "decompress",   "Decompress [FILES] with the ." EXTENSION " suffix"), \
-    FLAG_INIT(FLAG_REPLACE,      "replace",      "Remove [FILES] upon completion"),                    \
-    FLAG_INIT(FLAG_NO_OVERWRITE, "no-overwrite", "Do not overwrite files"),                            \
-    FLAG_INIT(FLAG_STDOUT,       "stdout",       "Write results to stdout"),                           \
-    FLAG_INIT(FLAG_TIME,         "time",         "Print the time it took to finish"),                  \
-    FLAG_INIT(FLAG_HELP,         "help",         "Print help information"),                            \
-    FLAG_INIT(FLAG_VERSION,      "version",      "Print version"),                                     \
-    FLAG_INIT(FLAG_LICENSE,      "license",      "Print license")                                      \
+	FLAG_INIT(FLAG_DECOMPRESS,   "decompress",   "Decompress [FILES] with the ." EXTENSION " suffix"), \
+	FLAG_INIT(FLAG_REPLACE,      "replace",      "Remove [FILES] upon completion"),                    \
+	FLAG_INIT(FLAG_NO_OVERWRITE, "no-overwrite", "Do not overwrite files"),                            \
+	FLAG_INIT(FLAG_STDOUT,       "stdout",       "Write results to stdout"),                           \
+	FLAG_INIT(FLAG_TIME,         "time",         "Print the time it took to finish"),                  \
+	FLAG_INIT(FLAG_HELP,         "help",         "Print help information"),                            \
+	FLAG_INIT(FLAG_VERSION,      "version",      "Print version"),                                     \
+	FLAG_INIT(FLAG_LICENSE,      "license",      "Print license")                                      \
 };
 
 /* Returns the flag struct in FLAGS based on the provided short name. */
@@ -71,7 +71,7 @@ void print_license(void);
 void print_version(void);
 void print_usage(void);
 
-/* Read argv setting every flag and 
+/* Read argv setting every flag and
  * returning an array of copies of non-flag
  * arguments.
  * The returned array is NULL terminated.

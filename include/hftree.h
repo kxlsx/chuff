@@ -39,7 +39,7 @@ struct hfnode{
 #define hfnode_right(self) \
 	((self)->right)
 #define hfnode_has_children(self) \
-	((self)->left != NULL) 
+	((self)->left != NULL)
 
 struct hftree{
 	struct hfnode *root;
@@ -49,7 +49,7 @@ struct hftree{
 /* The root hfnode of the hftree at self */
 #define hftree_root(self) \
 	((self)->root)
-/* 
+/*
  * An association table of every possible letter (<0; 255>) to
  * the address of their corresponding branches in the hftree at self.
  * If the letter is not in the tree, its address is NULL.
@@ -60,14 +60,14 @@ struct hftree{
 /* Construct a new hftree from the given association table of chars to their weights */
 struct hftree *hftree_new(size_t occ[256]);
 void hftree_free(struct hftree *self);
-/* 
+/*
  * Construct a hftree from its encoded form (by hftree_to_stream) contained in the stream.
  * The hftree is not complete and only stores its original shape and letters;
- * every hfnode weight is set to 0 and the ltnodes association table is unavailable. 
+ * every hfnode weight is set to 0 and the ltnodes association table is unavailable.
  */
 struct hftree *hftree_from_stream(FILE *stream);
 short hfletter_from_stream(FILE *stream, int *currc, bitpos_t *currci);
-/* 
+/*
  * Encode the hftree at self into the provided stream.
  * The encoding stores only the original shape and letters.
  */
